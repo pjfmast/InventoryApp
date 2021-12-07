@@ -16,11 +16,7 @@
 
 package com.example.inventory
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.inventory.data.Item
 import com.example.inventory.data.ItemDao
 import kotlinx.coroutines.launch
@@ -34,8 +30,13 @@ class InventoryViewModel(
     private val itemRepository: ItemRepository
     ) : ViewModel() {
 
-    // Cache all items form the database using LiveData.
-    val allItems: LiveData<List<Item>> = itemRepository.getItems().asLiveData() //itemDao.getItems().asLiveData()
+
+    var allItems = itemRepository.getItems().asLiveData() //itemDao.getItems().asLiveData()
+
+    private fun refreshItems() {
+        allItems = itemRepository.getItems().asLiveData()
+    }
+
 
     /**
      * Returns true if stock is available to sell, false otherwise.
@@ -65,6 +66,7 @@ class InventoryViewModel(
         viewModelScope.launch {
             itemRepository.update(item)
         }
+        refreshItems()
     }
 
     /**
@@ -75,6 +77,7 @@ class InventoryViewModel(
             // Decrease the quantity by 1
             val newItem = item.copy(quantityInStock = item.quantityInStock - 1)
             updateItem(newItem)
+            refreshItems()
         }
     }
 
@@ -84,6 +87,7 @@ class InventoryViewModel(
     fun addNewItem(itemName: String, itemPrice: String, itemCount: String) {
         val newItem = getNewItemEntry(itemName, itemPrice, itemCount)
         insertItem(newItem)
+        refreshItems()
     }
 
     /**
@@ -93,6 +97,7 @@ class InventoryViewModel(
         viewModelScope.launch {
             itemRepository.insert(item)
         }
+        refreshItems()
     }
 
     /**
@@ -102,6 +107,7 @@ class InventoryViewModel(
         viewModelScope.launch {
             itemRepository.delete(item)
         }
+        refreshItems()
     }
 
     /**

@@ -4,8 +4,7 @@ import android.util.Log
 import androidx.room.Query
 import com.example.inventory.data.Item
 import com.example.inventory.data.ItemDao
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import retrofit2.HttpException
 import java.util.logging.Logger
 
@@ -16,7 +15,9 @@ class ItemRepository(
     private val itemService: InventoryApiService
     ) {
 
-    private val useApiService = false
+    private val useApiService = true
+
+    //possible solutin for refresh: val itemFlow = MutableStateFlow<List<Item>>(listOf())
 
     fun getItems(): Flow<List<Item>> {
         if (useApiService) {
@@ -58,7 +59,7 @@ class ItemRepository(
     suspend fun insert(item: Item) {
         if (useApiService) {
             try {
-                itemService.postItem(Item(itemName = item.itemName, itemPrice = item.itemPrice, quantityInStock = item.quantityInStock))
+                itemService.postItem(item.copy(id = 0))
             } catch (e: Exception) {
                 val usefullException = wrapToBeTraceable(e)
                 Log.d(TAG, "insert: exception:\n" + usefullException.message)
